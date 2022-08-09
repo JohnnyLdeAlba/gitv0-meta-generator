@@ -1,4 +1,6 @@
+const fs = require('fs/promises');
 const ethers = require("ethers");
+
 const IPCLib = require("./ipc-lib");
 const IPCEng = require("./ipc-eng");
 const IPCGif = require("./ipc-gif");
@@ -75,14 +77,86 @@ function raw_ipc_to_ipc(raw_ipc) {
   return [ipc, label_ipc];
 }
 
+async function ipc_to_opensea_json(label_ipc) {
+
+  let description = `2022 ${label_ipc.subrace}\n\n${label_ipc.gender}, ${label_ipc.height}, `;
+  description+= `${label_ipc.skin_color} Skin, ${label_ipc.hair_color} Hair, ${label_ipc.eye_color} Eyes, ${label_ipc.handedness}-Handed\n\n`;
+  description+= `${label_ipc.strength} Strength, 17 Dexterity, 17 Intelligence, 15 Constitution, 6 Luck`;
+
+  const os_json = {
+    description: description,
+    name: `#${label_ipc.token_id} - ${label_ipc.gender} ${label_ipc.subrace}`,
+    image: `https://nexusultima.com/ipcv0/tokens/${label_ipc.token_id}.gif`,
+    attributes: [
+      {trait_type: "Race", value: label_ipc.race},
+      {trait_type: "Subrace", value: label_ipc.subrace},
+      {trait_type: "Gender", value: label_ipc.gender},
+      {trait_type: "Height", value: label_ipc.height},
+      {trait_type: "Skin Color", value: label_ipc.skin_color},
+      {trait_type: "Hair Color", value: label_ipc.hair_color},
+      {trait_type: "Eye Color", value: label_ipc.eye_color},
+      {trait_type: "Handedness", value: label_ipc.handedness},
+      {trait_type: "Birth Year", value: label_ipc.birth},
+      {trait_type: "Accessories", value: "None"},
+      {trait_type: "Strength", value: label_ipc.strength},
+      {trait_type: "Force", value: label_ipc.force},
+      {trait_type: "Sustain", value: label_ipc.sustain},
+      {trait_type: "Tolerance", value: label_ipc.tolerance},
+      {trait_type: "Dexterity", value: label_ipc.dexterity},
+      {trait_type: "Speed", value: label_ipc.speed},
+      {trait_type: "Precision", value: label_ipc.precision},
+      {trait_type: "Reaction", value: label_ipc.reaction},
+      {trait_type: "Intelligence", value: label_ipc.intelligence},
+      {trait_type: "Memory", value: label_ipc.memory},
+      {trait_type: "Processing", value: label_ipc.processing},
+      {trait_type: "Reasoning", value: label_ipc.reasoning},
+      {trait_type: "Constitution", value: label_ipc.constitution},
+      {trait_type: "Healing", value: label_ipc.healing},
+      {trait_type: "Fortitude", value: label_ipc.fortitude},
+      {trait_type: "Vitality", value: label_ipc.vitality},
+      {trait_type: "Luck", value: label_ipc.luck}
+    ]
+  };
+
+  await fs.writeFile(`tokens/${label_ipc.token_id}`, JSON.stringify(os_json));
+
+  return os_json;
+}
+
+async function ipc_generate_meta_data(payload) {
+
+  const [ipc, label_ipc] = payload;
+
+  const os_json = ipc_to_opensea_json(label_ipc);
+  await IPCGif.ipcgif_store(ipc);
+}
+
 async function main() {
 
   const provider = new ethers.providers.JsonRpcProvider(providerURI)
   const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
-  let message = await contract.getIpc(944);
-  console.log(raw_ipc_to_ipc(message));
-  await IPCGif.ipcgif_store(raw_ipc_to_ipc(message)[0])
+  const total = 1000;
+  const chunkTotal = 10
+  const chunkSize = total/chunkTotal;
+
+/*
+  const raw_ipc = await contract.getIpc(944);
+  const payload = raw_ipc_to_ipc(raw_ipc);
+  ipc_generate_meta_data(payload);
+*/
+
+  let x = 0, y = 0;
+  // for (x = 0; x < chunkTotal; x++) {
+
+    const chunk = await contract.uwGetAllTokens(0, 1000);
+
+    for (y = 0; y < chunk.length; y++) {
+
+      const payload = raw_ipc_to_ipc(chunk[y]);
+      await ipc_generate_meta_data(payload)
+    }
+  // }
 }
 
 main();
