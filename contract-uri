@@ -1,0 +1,8 @@
+{
+  "name": "Immortal Player Characters v0 Wrapped",
+  "description": "This is an unofficial wrapped collection of Immortal Playable Characters minted on the unsupported version 0 contract that was deployed in 2018. This wrapper provides a layer of security and meta data that the original v0 (version 0) contract did not offer.",
+  "image": "",
+  "external_link": "https://www.immortalplayercharacters.com",
+  "seller_fee_basis_points": 0,
+  "fee_recipient": ""
+}

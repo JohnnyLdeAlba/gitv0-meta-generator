@@ -8,6 +8,7 @@ const IPCLib = require("./ipc-lib.js");
 const IPCGIF_WIDTH = 64;
 const IPCGIF_HEIGHT = 64;
 const IPCGIF_TOTAL_COLUMNS = 9;
+const IPCGIF_SCALE = 5;
 
 const IPCGIF_DIR = "tokens/";
 const IPCGIF_SPRITESHEET = "sprite-sheet.png";
@@ -284,15 +285,15 @@ function ipcgif_draw_frame(canvas_array, ipcgif, frame_index)
     }
 
     // Combine all layers: body, clothes, accessories, hair, eyes.
-    let frame = createCanvas(IPCGIF_WIDTH * 5, IPCGIF_HEIGHT * 5);
+    let frame = createCanvas(IPCGIF_WIDTH * IPCGIF_SCALE, IPCGIF_HEIGHT * IPCGIF_SCALE);
     context = frame.getContext("2d");
     context.imageSmoothingEnabled = false;
 
     if (ipcgif.handedness == IPCLib.IPC_LEFT_HANDED)
     {
-        context.translate(IPCGIF_WIDTH/2, 0);
+        context.translate((IPCGIF_WIDTH  * IPCGIF_SCALE)/2, 0);
         context.scale(-1, 1);
-        context.translate(-IPCGIF_WIDTH/2, 0);
+        context.translate(-(IPCGIF_WIDTH  * IPCGIF_SCALE)/2, 0);
     }
 
     let index = 0;
@@ -300,7 +301,7 @@ function ipcgif_draw_frame(canvas_array, ipcgif, frame_index)
         context.drawImage(
             layer[index],
             0, 0,
-            IPCGIF_WIDTH * 5, IPCGIF_HEIGHT * 5);
+            IPCGIF_WIDTH * IPCGIF_SCALE, IPCGIF_HEIGHT * IPCGIF_SCALE);
 
     return frame;   
 }
@@ -367,6 +368,7 @@ async function ipcgif_store(ipc)
     encoder.finish();
 
     let buffer = encoder.out.getData();
+
     result = await fs.writeFile(IPCGIF_DIR + filename + ".gif", buffer)
         .then(res => 0)
         .catch(err => -1);

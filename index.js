@@ -86,7 +86,7 @@ async function ipc_to_opensea_json(label_ipc) {
   const os_json = {
     description: description,
     name: `#${label_ipc.token_id} - ${label_ipc.gender} ${label_ipc.subrace}`,
-    image: `https://nexusultima.com/ipcv0/tokens/${label_ipc.token_id}.gif`,
+    image: `ipfs://bafybeihhx6bgrqe62ep7vfqipci3qc7ktkkldwfm4ezkgwzcaly6kpzwg4/${label_ipc.token_id}.gif`,
     attributes: [
       {trait_type: "Race", value: label_ipc.race},
       {trait_type: "Subrace", value: label_ipc.subrace},
@@ -96,7 +96,7 @@ async function ipc_to_opensea_json(label_ipc) {
       {trait_type: "Hair Color", value: label_ipc.hair_color},
       {trait_type: "Eye Color", value: label_ipc.eye_color},
       {trait_type: "Handedness", value: label_ipc.handedness},
-      {trait_type: "Birth Year", value: label_ipc.birth},
+      {trait_type: "Birth Year", value: "2022"},
       {trait_type: "Accessories", value: "None"},
       {trait_type: "Strength", value: label_ipc.strength},
       {trait_type: "Force", value: label_ipc.force},
@@ -131,32 +131,38 @@ async function ipc_generate_meta_data(payload) {
   await IPCGif.ipcgif_store(ipc);
 }
 
-async function main() {
+async function generate_backup() {
 
   const provider = new ethers.providers.JsonRpcProvider(providerURI)
   const contract = new ethers.Contract(contractAddress, contractABI, provider);
 
-  const total = 1000;
-  const chunkTotal = 10
-  const chunkSize = total/chunkTotal;
+  const raw_tokens = await contract.uwGetAllTokens(0, 1000);
+  const tokens = [];
 
-/*
-  const raw_ipc = await contract.getIpc(944);
-  const payload = raw_ipc_to_ipc(raw_ipc);
-  ipc_generate_meta_data(payload);
-*/
-
-  let x = 0, y = 0;
-  // for (x = 0; x < chunkTotal; x++) {
-
-    const chunk = await contract.uwGetAllTokens(0, 1000);
-
-    for (y = 0; y < chunk.length; y++) {
-
-      const payload = raw_ipc_to_ipc(chunk[y]);
-      await ipc_generate_meta_data(payload)
-    }
-  // }
+  for (let index = 0; index < raw_tokens.length; index++)
+    tokens[index] = raw_ipc_to_ipc(raw_tokens[index]);
+  
+  await fs.writeFile("backup.json", JSON.stringify(tokens));
 }
 
+async function open_backup() {
+
+  const data = await fs.readFile("backup.json");
+  return JSON.parse(data);
+}
+
+async function main() {
+
+  const tokens = await open_backup();
+
+  // ipc_generate_meta_data(tokens[18]);
+
+  for (let index = 0; index < tokens.length; index++) {
+
+    const payload = tokens[index];
+    await ipc_generate_meta_data(payload)
+  }
+}
+
+// generate_backup();
 main();
