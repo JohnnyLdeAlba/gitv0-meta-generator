@@ -159,7 +159,7 @@ async function main() {
   for (let index = 0; index < tokens.length; index++) {
 
     const payload = tokens[index];
-    // await ipc_generate_meta_data(payload);
+    await ipc_generate_meta_data(payload);
     await IPCCard.ipccard_store(payload[0]);
   }
 }
