@@ -4,10 +4,11 @@ const ethers = require("ethers");
 const IPCLib = require("./ipc-lib");
 const IPCEng = require("./ipc-eng");
 const IPCGif = require("./ipc-gif");
+const IPCCard = require("./ipc-card");
 
 const contractABI = require('./IPCWrapper.abi.json');
 const contractAddress = "0xD0f54E91ee2e57EA72B0836565E8dfFDb0a5F950";
-const providerURI = "https://eth-mainnet.alchemyapi.io/v2/6fYLeoOJ3Vp6ONxoiJ0jWkEYGcR8vRIH";
+const providerURI = "";
 
 function raw_ipc_to_ipc(raw_ipc) {
 
@@ -155,12 +156,11 @@ async function main() {
 
   const tokens = await open_backup();
 
-  // ipc_generate_meta_data(tokens[18]);
-
   for (let index = 0; index < tokens.length; index++) {
 
     const payload = tokens[index];
-    await ipc_generate_meta_data(payload)
+    // await ipc_generate_meta_data(payload);
+    await IPCCard.ipccard_store(payload[0]);
   }
 }
 
